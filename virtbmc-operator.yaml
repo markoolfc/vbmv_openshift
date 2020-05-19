@@ -1,0 +1,54 @@
+---
+  apiVersion: apps/v1
+  kind: Deployment
+  metadata:
+    labels:
+      kubevirt.io: virtbmc-operator
+    name: virtbmc-operator
+    namespace: openshift-cnv
+  spec:
+    replicas: 1
+    selector:
+      matchLabels:
+        kubevirt.io: virtbmc-operator
+    strategy:
+      type: RollingUpdate
+    template:
+      metadata:
+        annotations:
+          scheduler.alpha.kubernetes.io/critical-pod: ""
+          scheduler.alpha.kubernetes.io/tolerations: '[{"key":"CriticalAddonsOnly","operator":"Exists"}]'
+        labels:
+          kubevirt.io: virtbmc-operator
+          prometheus.kubevirt.io: ""
+        name: virtbmc-operator
+      spec:
+        hostNetwork: false
+        dnsPolicy: ClusterFirstWithHostNet
+        volumes:
+        - name: virtualbmc-config
+          configMap:
+            name: virtualbmc-conf
+        containers:
+        - command:
+          - /bin/bash
+          - /root/vbmcd.sh
+          env:
+          - name: VIRTUALBMC_CONFIG 
+            value: /etc/virtualbmc/virtualbmc.conf
+          - name: OPERATOR_IMAGE
+            value: docker.io/markoolfc/virtualbmc:latest
+          - name: WATCH_NAMESPACE
+            valueFrom:
+              fieldRef:
+                fieldPath: metadata.annotations['olm.targetNamespaces']
+          image: docker.io/markoolfc/virtualbmc:latest
+          imagePullPolicy: Always
+          name: virtbmc-operator
+          resources: {}
+          volumeMounts:
+            - mountPath: /etc/virtualbmc
+              name: virtualbmc-config
+        securityContext:
+          runAsNonRoot: false
+        serviceAccountName: kubevirt-operator
