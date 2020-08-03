@@ -142,7 +142,7 @@ class VirtualBMC(bmc.Bmc):
                 # Command failed, but let client to retry
                 return IPMI_COMMAND_NODE_BUSY
         else:
-            api = get_client()
+            api = get_api()
             vm = api.read_namespaced_virtual_machine(self.name,self.namespace)
             self._remove_boot_order(vm.spec.template.spec.domain.devices.disks)
             self._remove_boot_order(vm.spec.template.spec.domain.devices.interfaces)
@@ -154,8 +154,9 @@ class VirtualBMC(bmc.Bmc):
                 self._set_boot_order(vm.spec.template.spec.domain.devices.disks)
 
             api.replace_namespaced_virtual_machine(vm,self.namespace,self.name)
-
-            return IPMI_COMMAND_NODE_BUSY
+            
+            return 1
+           # return IPMI_COMMAND_NODE_BUSY
 
     def _remove_boot_order(self, devices):
         for device in devices:
