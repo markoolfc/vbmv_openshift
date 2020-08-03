@@ -155,7 +155,6 @@ class VirtualBMC(bmc.Bmc):
 
             api.replace_namespaced_virtual_machine(vm,self.namespace,self.name)
             
-            return 1
            # return IPMI_COMMAND_NODE_BUSY
 
     def _remove_boot_order(self, devices):
